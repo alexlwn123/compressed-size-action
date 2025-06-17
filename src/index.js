@@ -18,7 +18,7 @@ async function run(octokit, context, token) {
 	// const pr = (await octokit.pulls.get({ owner, repo, pull_number })).data;
 	try {
 		debug('pr' + JSON.stringify(context.payload, null, 2));
-	} catch (e) {}
+	} catch (e) { }
 
 	let baseSha, baseRef;
 	if (context.eventName == 'push') {
@@ -47,7 +47,6 @@ async function run(octokit, context, token) {
 		stripHash: stripHash(getInput('strip-hash'))
 	});
 
-	const buildScript = getInput('build-script') || 'build';
 	const cwd = process.cwd();
 
 	let yarnLock = await fileExists(path.resolve(cwd, 'yarn.lock'));
@@ -75,14 +74,20 @@ async function run(octokit, context, token) {
 		installScript = getInput('install-script');
 	}
 
+	let buildScript = `${packageManager} run build`;
+
+	if (getInput('build-script')) {
+		buildScript = getInput('build-script');
+	}
+
 	startGroup(`[current] Install Dependencies`);
 	console.log(`Installing using ${installScript}`);
 	await exec(installScript);
 	endGroup();
 
-	startGroup(`[current] Build using ${packageManager}`);
-	console.log(`Building using ${packageManager} run ${buildScript}`);
-	await exec(`${packageManager} run ${buildScript}`);
+	startGroup(`[current] Build using ${buildScript}`);
+	console.log(`Building using ${buildScript}`);
+	await exec(buildScript);
 	endGroup();
 
 	// In case the build step alters a JSON-file, ....
@@ -157,8 +162,8 @@ async function run(octokit, context, token) {
 	await exec(installScript);
 	endGroup();
 
-	startGroup(`[base] Build using ${packageManager}`);
-	await exec(`${packageManager} run ${buildScript}`);
+	startGroup(`[base] Build using ${buildScript}`);
+	await exec(buildScript);
 	endGroup();
 
 	// In case the build step alters a JSON-file, ....
@@ -218,7 +223,7 @@ async function run(octokit, context, token) {
 		try {
 			const comments = (await octokit.issues.listComments(commentInfo)).data;
 			const commentRegExp = new RegExp(`<sub>[\s\n]*(compressed|gzip)-size-action${commentKey ? `::${commentKey}` : ''}</sub>`)
-			for (let i = comments.length; i--; ) {
+			for (let i = comments.length; i--;) {
 				const c = comments[i];
 				if (commentRegExp.test(c.body)) {
 					commentId = c.id;

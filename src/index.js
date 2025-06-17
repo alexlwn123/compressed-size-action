@@ -74,11 +74,10 @@ async function run(octokit, context, token) {
 		installScript = getInput('install-script');
 	}
 
-	let buildScript = `${packageManager} run build`;
+	let buildScript = getInput('build-script');
 
-	if (getInput('build-script')) {
-		buildScript = getInput('build-script');
-	}
+	console.log('buildScript', buildScript);
+	console.log('installScript', installScript);
 
 	startGroup(`[current] Install Dependencies`);
 	console.log(`Installing using ${installScript}`);
